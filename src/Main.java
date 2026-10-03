@@ -138,12 +138,18 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        int port = args.length == 0 ? 8080 : Integer.parseInt(args[0]);
+        String host = System.getenv("HOST");
+        if (host == null || host.isBlank()) host = "0.0.0.0";
+        String configuredPort = System.getenv("PORT");
+        int port = Integer.parseInt(args.length > 0 ? args[0]
+            : configuredPort == null || configuredPort.isBlank() ? "8080" : configuredPort);
+        if (port < 1 || port > 65535)
+            throw new IllegalArgumentException("Port must be between 1 and 65535");
         template = Files.readString(Path.of("public/index.html"));
         pikachu = Files.readAllBytes(Path.of("public/pikachu.png"));
-        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(host, port), 0);
         server.createContext("/", Main::handle);
         server.start();
-        System.out.println("피카츄 모래시계: http://localhost:" + port);
+        System.out.println("피카츄 모래시계 수신 주소: " + host + ":" + port);
     }
 }
